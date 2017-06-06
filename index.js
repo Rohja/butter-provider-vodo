@@ -10,6 +10,9 @@ var Datastore = require('nedb');
 
 var db = new Datastore();
 
+var Web3 = require('web3');
+var web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"))
+
 function Vodo(args) {
     if (!(this instanceof Vodo)) {
         return new Vodo(args);
@@ -24,13 +27,17 @@ Vodo.prototype.config = {
     name: 'vodo',
     uniqueId: 'imdb_id',
     tabName: 'Vodo',
+    contract: {
+	address: '0x14fc4bb64bd8006ebcdb98cef3103b3db9e15acf',
+	abi: [{"constant":true,"inputs":[{"name":"","type":"uint256"}],"name":"keys","outputs":[{"name":"","type":"string"}],"payable":false,"type":"function"},{"constant":true,"inputs":[{"name":"key","type":"string"}],"name":"getRecord","outputs":[{"name":"owner","type":"address"},{"name":"time","type":"uint256"},{"name":"title","type":"string"},{"name":"year","type":"uint16"},{"name":"imdb_id","type":"string"},{"name":"rotten_id","type":"string"}],"payable":false,"type":"function"},{"constant":false,"inputs":[{"name":"key","type":"string"},{"name":"title","type":"string"},{"name":"year","type":"uint16"},{"name":"imdb_id","type":"string"},{"name":"rotten_id","type":"string"}],"name":"update","outputs":[],"payable":false,"type":"function"},{"constant":false,"inputs":[],"name":"kill","outputs":[],"payable":false,"type":"function"},{"constant":true,"inputs":[{"name":"key","type":"string"}],"name":"getOwner","outputs":[{"name":"","type":"address"}],"payable":false,"type":"function"},{"constant":false,"inputs":[{"name":"key","type":"string"}],"name":"unregister","outputs":[],"payable":false,"type":"function"},{"constant":true,"inputs":[{"name":"rindex","type":"uint256"}],"name":"getRecordAtIndex","outputs":[{"name":"key","type":"string"},{"name":"owner","type":"address"},{"name":"time","type":"uint256"},{"name":"title","type":"string"},{"name":"year","type":"uint16"},{"name":"imdb_id","type":"string"},{"name":"rotten_id","type":"string"}],"payable":false,"type":"function"},{"constant":true,"inputs":[],"name":"owner","outputs":[{"name":"","type":"address"}],"payable":false,"type":"function"},{"constant":false,"inputs":[{"name":"key","type":"string"},{"name":"title","type":"string"},{"name":"year","type":"uint16"},{"name":"imdb_id","type":"string"},{"name":"rotten_id","type":"string"}],"name":"register","outputs":[],"payable":false,"type":"function"},{"constant":true,"inputs":[{"name":"key","type":"string"}],"name":"getTime","outputs":[{"name":"","type":"uint256"}],"payable":false,"type":"function"},{"constant":true,"inputs":[],"name":"numRecords","outputs":[{"name":"","type":"uint256"}],"payable":false,"type":"function"},{"constant":true,"inputs":[{"name":"key","type":"string"}],"name":"isRegistered","outputs":[{"name":"","type":"bool"}],"payable":false,"type":"function"},{"constant":true,"inputs":[],"name":"creationTime","outputs":[{"name":"","type":"uint256"}],"payable":false,"type":"function"},{"constant":false,"inputs":[{"name":"to","type":"address"},{"name":"value","type":"uint256"}],"name":"withdraw","outputs":[],"payable":false,"type":"function"},{"constant":false,"inputs":[{"name":"key","type":"string"},{"name":"newOwner","type":"address"}],"name":"transfer","outputs":[],"payable":false,"type":"function"}],
+    },
     filters: {
         sorters: {
-            popularity: 'Popularity',
+            // popularity: 'Popularity',
             updated: 'Updated',
             year: 'Year',
             alphabet: 'Alphabetical',
-            rating: 'Rating'
+            // rating: 'Rating'
         }
     },
     defaults: {
@@ -100,6 +107,10 @@ function formatForButter(items) {
 Vodo.prototype.updateAPI = function () {
     var self = this;
     var defer = Q.defer();
+
+    var lulzTorrentContract = web3.eth.contract(this.contract.abi);
+    var lulzTorrent = lulzTorrentContract.at(this.contract.address);
+
     console.info('Request to Vodo', this.apiUrl);
     axios(this.apiUrl[0], {
         strictSSL: false,
